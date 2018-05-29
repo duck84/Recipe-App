@@ -22,13 +22,15 @@ def search(soup):
         recipe = soup.title.text
     except AttributeError:
         return
-    for i in soup.find_all('li', {'class' : 'ingredient'}):
+    for i in soup.find_all('span', {'itemprop' : 'name'}):
+        if i.text in ingredients:
+            continue
         ingredients.append(i.text)
     return recipe, ingredients
 
-def searcher(site="", total=1000):                       
-    root = 'www.bonappetit.com'
-    skip = ['jpg', 'travel', 'subscribe']
+def searcher(site="", total= 2500):                       
+    root = 'thepioneerwoman.com'
+    skip = ['jpg', 'comment', 'facebook']
     to_scrap.add(site)
     while len(to_scrap) and len(recipes) <= total:
         try:
@@ -56,7 +58,7 @@ def searcher(site="", total=1000):
                     continue
                 if root in link:
                     to_scrap.add(link)
-                    if soup.find_all('div', {'class': 'ingredients'}):
+                    if soup.find_all('ul', {'class': 'list-ingredients'}):
                         links.add(link)
                         x,y = (search(soup))
                         if x not in recipes:
@@ -67,7 +69,7 @@ def searcher(site="", total=1000):
     print("done")
     return links
     
-searcher('http://www.bonappetit.com/recipes', 1)
+searcher('http://thepioneerwoman.com/cooking_cat/all-pw-recipes/', 2152)
 pool = ThreadPool(50)
 stuff = pool.map(searcher, range(0, 50))
 pool.close()

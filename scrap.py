@@ -10,6 +10,12 @@ to_scrap = set()
 scrapped = set()
 links = set()
 
+try:
+    with open('database.pkl', 'rb') as fp:
+        recipes = pickle.load(fp)
+except:
+    pass
+
 def search(soup):
     ingredients = []
     try:
@@ -33,11 +39,11 @@ def search(soup):
                 ingredients.append(text)
             return recipe, ingredients       
 
-def searcher(site="", total=10000):                       
+def searcher(site="", total=3000):                       
     root = 'bakingthegoods.com'
     skip = ['jpg', 'comment', 'tag']
     to_scrap.add(site)
-    while len(to_scrap) and len(links) <= total:
+    while len(to_scrap) and len(recipes) <= total:
         try:
             scrapping = to_scrap.pop()
             if scrapping in scrapped or skip[0] in scrapping or skip[1] in scrapping or skip[2] in scrapping:
@@ -52,7 +58,7 @@ def searcher(site="", total=10000):
             continue
         except TypeError:
             continue  
-        print("Scrapping {}".format(scrapping))
+#        print("Scrapping {}".format(scrapping))
         soup = BeautifulSoup(connection.text, 'lxml')
         for link in soup.find_all('a'):
             if link.has_attr('href'):
@@ -72,17 +78,14 @@ def searcher(site="", total=10000):
     print("done")
     return links
     
-searcher('http://bakingthegoods.com/recipes', 10)
-to_scrap.add('http://bakingthegoods.com')
-pool = ThreadPool(30)
-stuff = pool.map(searcher, range(0,10))
+searcher('http://bakingthegoods.com/recipes', 2025)
+pool = ThreadPool(50)
+stuff = pool.map(searcher, range(0, 50))
 pool.close()
 pool.join()
 
-f = open('database.pkl', 'wb')
-pickle.dump(links, f)
-f.close
-
+with open('database.pkl', 'wb') as fp:
+    pickle.dump(recipes, fp)
 x = 0
 for key in recipes:
     print(key)

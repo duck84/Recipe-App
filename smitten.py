@@ -10,25 +10,19 @@ to_scrap = set()
 scrapped = set()
 links = set()
 
-try:
-    with open('database.pkl', 'rb') as fp:
-        recipes = pickle.load(fp)
-except:
-    pass
-
 def search(soup):
     ingredients = []
     try:
         recipe = soup.title.text
     except AttributeError:
         return
-    for i in soup.find_all('li', {'class' : 'ingredient'}):
-        ingredients.append(i.text)
-    return recipe, ingredients
+        for i in soup.find_all('li', {'class' : 'jetpack-recipe-ingredient'}):
+            ingredients.append(i.text)
+        return recipe, ingredients 
 
 def searcher(site="", total=1000):                       
-    root = 'www.bonappetit.com'
-    skip = ['jpg', 'travel', 'subscribe']
+    root = 'smittenkitchen.com'
+    skip = ['jpg', 'comment', 'tag']
     to_scrap.add(site)
     while len(to_scrap) and len(recipes) <= total:
         try:
@@ -43,8 +37,6 @@ def searcher(site="", total=1000):
             continue
         except requests.exceptions.ReadTimeout:
             continue
-        except requests.exceptions.ConnectionError:
-            continue
         except TypeError:
             continue  
 #        print("Scrapping {}".format(scrapping))
@@ -56,25 +48,27 @@ def searcher(site="", total=1000):
                     continue
                 if root in link:
                     to_scrap.add(link)
-                    if soup.find_all('div', {'class': 'ingredients'}):
+                    if soup.find_all('li', {'class': 'jetpack-recipe-ingredients'}):
                         links.add(link)
                         x,y = (search(soup))
                         if x not in recipes:
-                            recipes[x].append(link)
                             for y in y:
                                 recipes[x].append(y)
         print("Recipes: {}    To Scrap: {}".format(len(recipes), len(to_scrap)))
     print("done")
     return links
-    
-searcher('http://www.bonappetit.com/recipes', 1)
-pool = ThreadPool(50)
-stuff = pool.map(searcher, range(0, 50))
+
+#to_scrap.add('http://smittenkitchen.com/recipes')   
+searcher('https://smittenkitchen.com/2006/09/silky-cauliflower-soup/', 1) 
+#searcher('http://smittenkitchen.com/recipes', 0)
+pool = ThreadPool(30)
+stuff = pool.map(searcher, range(0, 30))
 pool.close()
 pool.join()
 
-with open('database.pkl', 'wb') as fp:
-    pickle.dump(recipes, fp)
+#f = open('database.pkl', 'wb')
+#pickle.dump(recipes, f)
+#f.close
 
 x = 0
 for key in recipes:
