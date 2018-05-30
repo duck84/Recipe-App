@@ -4,6 +4,9 @@ import pickle
 from multiprocessing.dummy import Pool as ThreadPool
 import itertools
 from collections import defaultdict
+import os
+
+os.chdir('/u/mmcgrath/Spring/Project/Databases')
 
 recipes = defaultdict(list)
 to_scrap = set()
@@ -11,7 +14,7 @@ scrapped = set()
 links = set()
 
 try:
-    with open('database.pkl', 'rb') as fp:
+    with open('bonappetit.pkl', 'rb') as fp:
         recipes = pickle.load(fp)
 except:
     pass
@@ -26,7 +29,7 @@ def search(soup):
         ingredients.append(i.text)
     return recipe, ingredients
 
-def searcher(site="", total=1000):                       
+def searcher(site="", total=3000):                       
     root = 'www.bonappetit.com'
     skip = ['jpg', 'travel', 'subscribe']
     to_scrap.add(site)
@@ -56,7 +59,7 @@ def searcher(site="", total=1000):
                     continue
                 if root in link:
                     to_scrap.add(link)
-                    if soup.find_all('div', {'class': 'ingredients'}):
+                    if soup.find('div', {'class': 'ingredients'}):
                         links.add(link)
                         x,y = (search(soup))
                         if x not in recipes:
@@ -67,13 +70,13 @@ def searcher(site="", total=1000):
     print("done")
     return links
     
-searcher('http://www.bonappetit.com/recipes', 1)
+searcher('http://www.bonappetit.com/recipes', 2006)
 pool = ThreadPool(50)
 stuff = pool.map(searcher, range(0, 50))
 pool.close()
 pool.join()
 
-with open('database.pkl', 'wb') as fp:
+with open('bonappetit.pkl', 'wb') as fp:
     pickle.dump(recipes, fp)
 
 x = 0

@@ -4,6 +4,9 @@ import pickle
 from multiprocessing.dummy import Pool as ThreadPool
 import itertools
 from collections import defaultdict
+import os
+
+os.chdir('/u/mmcgrath/Spring/Project/Databases')
 
 recipes = defaultdict(list)
 to_scrap = set()
@@ -11,11 +14,10 @@ scrapped = set()
 links = set()
 
 try:
-    with open('database.pkl', 'rb') as fp:
+    with open('serious.pkl', 'rb') as fp:
         recipes = pickle.load(fp)
 except:
     pass
-
 
 def search(soup):
     ingredients = []
@@ -27,9 +29,9 @@ def search(soup):
         ingredients.append(i.text)
     return recipe, ingredients
 
-def searcher(site="", total=2000):                       
-    root = 'seriouseats.com'
-    skip = ['jpg', 'comment', 'tag']
+def searcher(site="", total= 2000):                       
+    root = 'www.seriouseats.com'
+    skip = ['jpg', 'comment', 'facebook']
     to_scrap.add(site)
     while len(to_scrap) and len(recipes) <= total:
         try:
@@ -53,11 +55,11 @@ def searcher(site="", total=2000):
         for link in soup.find_all('a'):
             if link.has_attr('href'):
                 link = link['href']
-                if link in links or skip[0] in link or skip[1] in link:
+                if link in links or skip[0] in link or skip[1] in link or skip[2] in link:
                     continue
-                if root in link:
+                if root in link and link not in scrapped:
                     to_scrap.add(link)
-                    if soup.find_all('div', {'class': 'recipe-ingredients'}):
+                    if soup.find('div', {'class': 'recipe-ingredients'}):
                         links.add(link)
                         x,y = (search(soup))
                         if x not in recipes:
@@ -68,13 +70,13 @@ def searcher(site="", total=2000):
     print("done")
     return links
     
-searcher('http://seriouseats.com/recipes', 1010)
+searcher('http://www.seriouseats.com/recipes', 1)
 pool = ThreadPool(50)
 stuff = pool.map(searcher, range(0, 50))
 pool.close()
 pool.join()
 
-with open('database.pkl', 'wb') as fp:
+with open('serious.pkl', 'wb') as fp:
     pickle.dump(recipes, fp)
 
 x = 0

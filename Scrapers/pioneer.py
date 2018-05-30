@@ -4,11 +4,20 @@ import pickle
 from multiprocessing.dummy import Pool as ThreadPool
 import itertools
 from collections import defaultdict
+import os
+
+os.chdir('/u/mmcgrath/Spring/Project/Databases')
 
 recipes = defaultdict(list)
 to_scrap = set()
 scrapped = set()
 links = set()
+
+try:
+    with open('pioneer.pkl', 'rb') as fp:
+        recipes = pickle.load(fp)
+except:
+    pass
 
 def search(soup):
     ingredients = []
@@ -16,13 +25,15 @@ def search(soup):
         recipe = soup.title.text
     except AttributeError:
         return
-        for i in soup.find_all('li', {'class' : 'jetpack-recipe-ingredient'}):
-            ingredients.append(i.text)
-        return recipe, ingredients 
+    for i in soup.find_all('span', {'itemprop' : 'name'}):
+        if i.text in ingredients:
+            continue
+        ingredients.append(i.text)
+    return recipe, ingredients
 
-def searcher(site="", total=1000):                       
-    root = 'smittenkitchen.com'
-    skip = ['jpg', 'comment', 'tag']
+def searcher(site="", total= 300):                       
+    root = 'thepioneerwoman.com'
+    skip = ['jpg', 'comment', 'facebook']
     to_scrap.add(site)
     while len(to_scrap) and len(recipes) <= total:
         try:
@@ -37,6 +48,8 @@ def searcher(site="", total=1000):
             continue
         except requests.exceptions.ReadTimeout:
             continue
+        except requests.exceptions.ConnectionError:
+            continue
         except TypeError:
             continue  
 #        print("Scrapping {}".format(scrapping))
@@ -44,31 +57,29 @@ def searcher(site="", total=1000):
         for link in soup.find_all('a'):
             if link.has_attr('href'):
                 link = link['href']
-                if link in links or skip[0] in link or skip[1] in link:
+                if link in scrapped or skip[0] in link or skip[1] in link:
                     continue
                 if root in link:
                     to_scrap.add(link)
-                    if soup.find_all('li', {'class': 'jetpack-recipe-ingredients'}):
-                        links.add(link)
+                    if soup.find_all('ul', {'class': 'list-ingredients'}):
+#                        links.add(link)
                         x,y = (search(soup))
                         if x not in recipes:
+                            recipes[x].append(link)
                             for y in y:
                                 recipes[x].append(y)
         print("Recipes: {}    To Scrap: {}".format(len(recipes), len(to_scrap)))
     print("done")
     return links
-
-#to_scrap.add('http://smittenkitchen.com/recipes')   
-searcher('https://smittenkitchen.com/2006/09/silky-cauliflower-soup/', 1) 
-#searcher('http://smittenkitchen.com/recipes', 0)
-pool = ThreadPool(30)
-stuff = pool.map(searcher, range(0, 30))
+    
+searcher('http://thepioneerwoman.com/cooking_cat/all-pw-recipes/', 1)
+pool = ThreadPool(50)
+stuff = pool.map(searcher, range(0, 50))
 pool.close()
 pool.join()
 
-#f = open('database.pkl', 'wb')
-#pickle.dump(recipes, f)
-#f.close
+with open('pioneer.pkl', 'wb') as fp:
+    pickle.dump(recipes, fp)
 
 x = 0
 for key in recipes:

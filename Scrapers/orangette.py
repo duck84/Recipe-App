@@ -4,6 +4,9 @@ import pickle
 from multiprocessing.dummy import Pool as ThreadPool
 import itertools
 from collections import defaultdict
+import os
+
+os.chdir('/u/mmcgrath/Spring/Project/Databases')
 
 recipes = defaultdict(list)
 to_scrap = set()
@@ -11,7 +14,7 @@ scrapped = set()
 links = set()
 
 try:
-    with open('database.pkl', 'rb') as fp:
+    with open('orangette.pkl', 'rb') as fp:
         recipes = pickle.load(fp)
 except:
     pass
@@ -22,15 +25,13 @@ def search(soup):
         recipe = soup.title.text
     except AttributeError:
         return
-    for i in soup.find_all('span', {'itemprop' : 'name'}):
-        if i.text in ingredients:
-            continue
+    for i in soup.find_all('div', {'class' : 'ingredient'}):
         ingredients.append(i.text)
     return recipe, ingredients
 
-def searcher(site="", total= 2500):                       
-    root = 'thepioneerwoman.com'
-    skip = ['jpg', 'comment', 'facebook']
+def searcher(site="", total=1000):                       
+    root = 'orangette.net'
+    skip = ['jpg', 'travel', 'subscribe']
     to_scrap.add(site)
     while len(to_scrap) and len(recipes) <= total:
         try:
@@ -58,7 +59,7 @@ def searcher(site="", total= 2500):
                     continue
                 if root in link:
                     to_scrap.add(link)
-                    if soup.find_all('ul', {'class': 'list-ingredients'}):
+                    if soup.find('div', {'class': 'recipe-list'}):
                         links.add(link)
                         x,y = (search(soup))
                         if x not in recipes:
@@ -69,13 +70,13 @@ def searcher(site="", total= 2500):
     print("done")
     return links
     
-searcher('http://thepioneerwoman.com/cooking_cat/all-pw-recipes/', 2152)
+searcher('http://orangette.net/recipes/', 1)
 pool = ThreadPool(50)
 stuff = pool.map(searcher, range(0, 50))
 pool.close()
 pool.join()
 
-with open('database.pkl', 'wb') as fp:
+with open('orangette.pkl', 'wb') as fp:
     pickle.dump(recipes, fp)
 
 x = 0

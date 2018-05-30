@@ -103,8 +103,8 @@ for key in recipes:
             sausage += 1
         elif 'peanut butter' in value:
             peanut_butter += 1
-        elif 'jelly' in value:
-            jelly += 1
+#        elif 'jelly' in value:
+#            jelly += 1
         elif 'honey' in value:
             honey += 1
         elif 'mayonnaise' in value:
