@@ -31,7 +31,7 @@ def search(soup):
 
 def searcher(site="", total= 2000):                       
     root = 'www.seriouseats.com'
-    skip = ['jpg', 'comment', 'facebook']
+    skip = ['jpg', 'twitter', 'facebook']
     to_scrap.add(site)
     while len(to_scrap) and len(recipes) <= total:
         try:

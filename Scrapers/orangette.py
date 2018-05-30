@@ -33,7 +33,7 @@ def searcher(site="", total=1000):
     root = 'orangette.net'
     skip = ['jpg', 'travel', 'subscribe']
     to_scrap.add(site)
-    while len(to_scrap) and len(recipes) <= total:
+    while len(to_scrap) < 10000 and len(recipes) <= total:
         try:
             scrapping = to_scrap.pop()
             if scrapping in scrapped or skip[0] in scrapping or skip[1] in scrapping or skip[2] in scrapping:
@@ -59,7 +59,7 @@ def searcher(site="", total=1000):
                     continue
                 if root in link:
                     to_scrap.add(link)
-                    if soup.find('div', {'class': 'recipe-list'}):
+                    if soup.find('div', {'class': 'ingredient'}):
                         links.add(link)
                         x,y = (search(soup))
                         if x not in recipes:

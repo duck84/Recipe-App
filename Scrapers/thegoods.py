@@ -74,13 +74,14 @@ def searcher(site="", total=1000):
                         links.add(link)
                         x,y = (search(soup))
                         if x not in recipes:
+                            recipes[x].append(link)
                             for y in y:
                                 recipes[x].append(y)
         print("Recipes: {}    To Scrap: {}".format(len(recipes), len(to_scrap)))
     print("done")
     return links
     
-searcher('http://bakingthegoods.com/recipes', 1)
+searcher('http://bakingthegoods.com/recipes', 100)
 pool = ThreadPool(50)
 stuff = pool.map(searcher, range(0, 50))
 pool.close()
