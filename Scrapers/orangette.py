@@ -22,14 +22,14 @@ except:
 def search(soup):
     ingredients = []
     try:
-        recipe = soup.title.text
+        recipe = soup.find('h2', {'class' : 'title'}).text
     except AttributeError:
         return
     for i in soup.find_all('div', {'class' : 'ingredient'}):
         ingredients.append(i.text)
     return recipe, ingredients
 
-def searcher(site="", total=1000):                       
+def searcher(site="", total=50):                       
     root = 'orangette.net'
     skip = ['jpg', 'travel', 'subscribe']
     to_scrap.add(site)

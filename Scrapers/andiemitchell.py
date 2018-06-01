@@ -14,7 +14,7 @@ scrapped = set()
 links = set()
 
 try:
-    with open('whiteonrice.pkl', 'rb') as fp:
+    with open('andiemitchell.pkl', 'rb') as fp:
         recipes = pickle.load(fp)
 except:
     pass
@@ -25,16 +25,16 @@ def search(soup):
         recipe = soup.title.text
     except AttributeError:
         return
-    for ul in soup.find_all('div', {'class' : 'ingredient'}):
-        for li in ul.find_all('li'):
-            ingredients.append(li.text)
+    for ul in soup.find_all('ul', {'id' : 'zlrecipe-ingredients-list'}):
+        for i in soup.ul('li', {'class' : 'ingredient'}):
+            ingredients.append(i.text)
     return recipe, ingredients
 
 def searcher(site="", total=1000):                       
-    root = 'whiteonricecouple.com'
+    root = 'www.andiemitchell.com'
     skip = ['jpg', 'facebook', 'twitter']
     to_scrap.add(site)
-    while len(to_scrap) and len(recipes) <= total and len(to_scrap) < 10000:
+    while len(to_scrap) and len(recipes) <= total:
         try:
             scrapping = to_scrap.pop()
             if scrapping in scrapped or skip[0] in scrapping or skip[1] in scrapping or skip[2] in scrapping:
@@ -60,7 +60,7 @@ def searcher(site="", total=1000):
                     continue
                 if root in link:
                     to_scrap.add(link)
-                    if soup.find('div', {'class': 'ingredient'}):
+                    if soup.find('ul', {'id': 'zlrecipe-ingredients-list'}):
                         links.add(link)
                         x,y = (search(soup))
                         if x not in recipes:
@@ -71,13 +71,13 @@ def searcher(site="", total=1000):
     print("done")
     return links
     
-searcher('http://whiteonricecouple.com/recipe-archive/', 1)
+searcher('http://www.andiemitchell.com/category/recipes/', 1)
 pool = ThreadPool(50)
 stuff = pool.map(searcher, range(0, 50))
 pool.close()
 pool.join()
 
-with open('whiteonrice.pkl', 'wb') as fp:
+with open('andiemitchell.pkl', 'wb') as fp:
     pickle.dump(recipes, fp)
 
 x = 0
